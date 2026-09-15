@@ -1,0 +1,28 @@
+[project]
+name = "goe"
+version = "0.1.0"
+description = "I just need to write code."
+readme = "README.md"
+authors = [
+    { name = "Ian Laird", email = "irlaird@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "pygae",
+]
+
+[project.scripts]
+gol = "goe:main"
+
+[build-system]
+requires = ["uv_build>=0.12.10,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.uv.sources]
+pygae = { path = "../pygae" }
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-watcher>=0.6.3",
+]
