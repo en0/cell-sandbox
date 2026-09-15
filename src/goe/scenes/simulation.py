@@ -6,11 +6,11 @@ from pygame import K_1, K_2, K_3, K_4, K_5, K_6, K_7, K_8, K_9, K_0, K_DOWN, K_H
 
 from pygae.core import GameObject
 
-from goe.core import Actions
-from goe.objects import Camera, HeadsUpDisplay, Simulation, Renderer
+from goe.core import Actions, LifeSimulation
+from goe.objects import Camera, HeadsUpDisplay, Simulation, Renderer, ZypherRenderer
 from goe.objects.render_fancy import FancyRenderer
-from goe.setting import BACKGROUND_COLOR, CELL_TYPE
-from goe.simulations import GolSimulation, BriansBrainSimulation
+from goe.setting import RENDERER, SIMULATION
+from goe.simulations import DoomFire, GolSimulation, BriansBrainSimulation
 
 
 @final
@@ -49,14 +49,10 @@ class SimulationScene(GameObject):
         self._bind_keys()
 
         # TODO: Presets feed into sim. Use "save" service
-        #sim = GolSimulation()
-        sim = BriansBrainSimulation()
         camera = Camera()
+        sim = self._get_simulation()
         simulation = Simulation(sim)
-        if CELL_TYPE == "bloom":
-            renderer = FancyRenderer(camera, sim)
-        else:
-            renderer = Renderer(camera, sim)
+        renderer = self._get_renderer(camera, sim)
 
         self.spawn_child(camera)
         self.spawn_child(simulation)
@@ -65,4 +61,25 @@ class SimulationScene(GameObject):
 
     @override
     def pre_render(self, surface: Surface, alpha: float):
-        _ = surface.fill(BACKGROUND_COLOR)
+        _ = surface.fill("black")
+
+    @staticmethod
+    def _get_simulation():
+        if SIMULATION == "GameOfLife":
+            return GolSimulation()
+        elif SIMULATION == "BriansBrain":
+            return BriansBrainSimulation()
+        elif SIMULATION == "DoomFire":
+            return DoomFire()
+        raise ValueError(f"Unknown Simulation {SIMULATION}")
+
+    @staticmethod
+    def _get_renderer(camera: Camera, sim: LifeSimulation):
+        if RENDERER == "standard":
+            return Renderer(camera, sim)
+        elif RENDERER == "zypher":
+            return ZypherRenderer(camera, sim)
+        elif RENDERER == "bloom":
+            return FancyRenderer(camera, sim)
+        raise ValueError(f"Unknown Renderer {RENDERER}")
+

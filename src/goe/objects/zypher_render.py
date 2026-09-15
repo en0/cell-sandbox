@@ -5,39 +5,31 @@ from pygae.math import Vec2Like
 from pygame import Surface, draw
 from goe.core import LifeSimulation
 from goe.objects import Camera
-from goe.setting import RENDERER, SIMULATION
 
 
-COLOR_BG = (0x0a, 0x0a, 0x0a)
-DBG_ZOOM = 0.9
+COLOR_BG   = (240, 240, 240)
+COLOR_CELL = (198, 230, 251)
 
 
 @final
-class Renderer(GameObject):
+class ZypherRenderer(GameObject):
 
     def __init__(self, camera: Camera, sim: LifeSimulation) -> None:
         super().__init__()
-        self._prev: frozenset[Vec2Like] = frozenset()
         self._cells: frozenset[Vec2Like] = frozenset()
-        self._buffer: frozenset[Vec2Like] = frozenset()
         self._cam = camera
         self._sim = sim
 
     @override
     def fixed_update(self, delta: float) -> None:
         self._cells = self._sim.collect()
-        if self._cells == self._prev: return
-        self._buffer = self._cells | self._prev
-        self._prev = self._cells
 
     @override
     def pre_render(self, surface: Surface, alpha: float):
         surface.fill(COLOR_BG)
         scale = self._cam.get_pixel_scale()
-        self._sim.set_debug(self._cam.get_zoom() > DBG_ZOOM)
-        width = scale if SIMULATION == "DoomFire" else 0.8*scale
-        for pos in self._buffer:
-            color = self._sim.get_color(pos)
-            if color:
+        width = 0.8*scale
+        for pos in self._cells:
+            if self._sim.get_color(pos):
                 _pos = self._cam.world_to_screen(pos, alpha)
-                _ = draw.rect(surface, color, (_pos.x-(width/2), _pos.y-(width/2), width, width))
+                _ = draw.circle(surface, COLOR_CELL, (_pos.x-(width/2), _pos.y-(width/2)), scale)

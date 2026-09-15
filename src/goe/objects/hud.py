@@ -40,7 +40,7 @@ class HeadsUpDisplay(GameObject):
 
     def _render_digest(self, digest: SimulationDigest):
         self._render_rhud_elem(HUD_GENERATION, digest.generation)
-        self._render_rhud_elem(HUD_CELL, f"{digest.alive} (born={digest.born}, died={digest.died | digest.dead})")
+        self._render_rhud_elem(HUD_CELL, f"{digest.alive} (born={digest.born}, died={digest.died})")
         self._render_rhud_elem(HUD_PRESET, digest.preset)
 
     def _render_lhud_elem(self, label, value) -> None:

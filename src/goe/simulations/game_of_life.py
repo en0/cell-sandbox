@@ -1,19 +1,27 @@
 from typing import final, override
-from random import randint
 
 from pygae.math import Vec2, Vec2Like
 
-from goe.core import CellFlag, LifeSimulation, SimulationDigest
-from goe.helpers import ascii2tuple
+from goe.core import LifeSimulation, SimulationDigest
+from goe.helpers import ascii2tuple, random_field
 
 
-def random_field(width: int, height: int):
-    half_x: int = width // 2
-    half_y: int = height // 2
-    for y in range(height):
-        for x in range(width):
-            if randint(0, 10) < 2:
-                yield (x-half_x, y-half_y)
+_STATE_BORN = 0
+_STATE_ALIVE = 1
+_STATE_DIED = 2
+
+_STATE_TO_COLOR = {
+    _STATE_BORN:  (0, 0, 170, 255),
+    _STATE_ALIVE: (0, 0, 170, 255),
+    _STATE_DIED: None,
+}
+
+_STATE_TO_COLOR_DEBUG = {
+    _STATE_BORN:  ( 0, 50, 170, 255),
+    _STATE_ALIVE: ( 0,  0, 170, 255),
+    _STATE_DIED:  (30, 20,  20, 255),
+}
+
 
 _NEIGHBORS = ascii2tuple("""
     ###
@@ -205,6 +213,7 @@ class GolSimulation(LifeSimulation):
         self._alive: frozenset[Vec2] = frozenset()
         self._died: frozenset[Vec2] = frozenset()
         self._born: frozenset[Vec2] = frozenset()
+        self._palet = _STATE_TO_COLOR
 
     @override
     def reload(self, preset: int | None = None) -> int:
@@ -267,13 +276,15 @@ class GolSimulation(LifeSimulation):
         )
 
     @override
-    def get_flags(self, cell: Vec2Like) -> CellFlag:
+    def get_color(self, cell: Vec2Like) -> tuple[int, int, int, int] | None:
         if cell in self._died:
-            return CellFlag.DIED
+            return self._palet[_STATE_DIED]
         elif cell in self._born:
-            return CellFlag.BORN | CellFlag.ALIVE
+            return self._palet[_STATE_BORN]
         elif cell in self._alive:
-            return CellFlag.ALIVE
-        else:
-            return CellFlag.DEAD
+            return self._palet[_STATE_ALIVE]
+        return None
 
+    @override
+    def set_debug(self, dbg: bool) -> None:
+        self._palet = _STATE_TO_COLOR_DEBUG if dbg else _STATE_TO_COLOR

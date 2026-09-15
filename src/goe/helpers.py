@@ -1,6 +1,6 @@
-from pygae.math import Vec2Like
+from random import randint
 
-from goe.core import CellFlag
+from pygae.math import Vec2Like
 
 
 def ascii2tuple(grid: str) -> list[Vec2Like]:
@@ -33,11 +33,13 @@ def ascii2tuple(grid: str) -> list[Vec2Like]:
     ]
 
 
-def has_any_flag(flags: CellFlag, *flag: CellFlag) -> bool:
-    for f in flag:
-        if flags & f == f:
-            return True
-    return False
+def random_field(width: int, height: int):
+    half_x: int = width // 2
+    half_y: int = height // 2
+    for y in range(height):
+        for x in range(width):
+            if randint(0, 10) < 2:
+                yield (x-half_x, y-half_y)
 
 
 def normalize_value(value: int|float, min_value: int|float, max_value: int|float) -> float:

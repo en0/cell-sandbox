@@ -6,14 +6,15 @@ from pygae.math import Vec2Like
 from pygame import BLEND_RGB_ADD, BLEND_RGB_MULT, SRCALPHA, Color, Surface
 from pygame.transform import smoothscale
 
-from goe.core import CellFlag, LifeSimulation
-from goe.helpers import has_any_flag
+from goe.core import LifeSimulation
 from goe.objects import Camera
-from goe.setting import CELL_ALIVE_COLOR, CELL_BORN_COLOR
 
+
+COLOR_BG    = (0x0a, 0x0a, 0x14)
+COLOR_NUC   = (0x30, 0x60, 0x30)
+COLOR_BLOOM = (0x00, 0x00, 0x64)
 
 BLOOM_QUANTIZTION_COUNT = 32
-
 
 def _make_bloom_map(size: int) -> Surface:
     surf = Surface((size, size), SRCALPHA)
@@ -71,10 +72,10 @@ class FancyRenderer(GameObject):
     def pre_update(self, delta: float) -> None:
         for k in self._buffer.keys():
             v = self._buffer[k]
-            flags = self._sim.get_flags(k)
-            if has_any_flag(flags, CellFlag.ALIVE, CellFlag.BORN):
+            c = self._sim.get_color(k)
+            if c is not None:
                 v += (1 - v) * (1 - math.exp(-10*delta))
-            elif has_any_flag(flags, CellFlag.DIED, CellFlag.DEAD):
+            else:
                 v -= 5 * delta
             self._buffer[k] = intensity = max(min(v, 1), 0)
             if intensity <= 0:
@@ -83,6 +84,9 @@ class FancyRenderer(GameObject):
 
     @override
     def pre_render(self, surface: Surface, alpha: float):
+
+        surface.fill(COLOR_BG)
+
         scale = self._cam.get_pixel_scale()
         zoom = self._cam.get_zoom()
         width = 1.3 * scale
@@ -99,10 +103,10 @@ class FancyRenderer(GameObject):
                             surface,
                             ((pos.x)-(width/2), (pos.y)-(width/2)),
                             width/2,
-                            CELL_BORN_COLOR,
+                            COLOR_NUC,
                             n_intensity
                         )
-                    self._blit_bloom(surface, (pos.x-(width/2), pos.y-(width/2)), width*2, CELL_ALIVE_COLOR, intensity)
+                    self._blit_bloom(surface, (pos.x-(width/2), pos.y-(width/2)), width*2, COLOR_BLOOM, intensity)
             else:
                 self._to_remove.add(k)
 

@@ -1,29 +1,15 @@
-from dataclasses import dataclass
-from enum import Flag, IntEnum, StrEnum, auto
+from enum import IntEnum, StrEnum, auto
 from typing import NamedTuple, Protocol
 
 from pygae.math import Vec2, Vec2Like
-from pygame import Rect, USEREVENT
+from pygame import USEREVENT
 from pygame.event import Event
-
-
-class CellFlag(Flag):
-    BORN  = 0b0001
-    ALIVE = 0b0010
-    DIED  = 0b0100
-    DEAD  = 0b1000
-
-
-class Cell(NamedTuple):
-    pos: Vec2
-    flags: CellFlag
 
 
 class SimulationDigest(NamedTuple):
     generation: int
     preset: str
     alive: int
-    dead: int = 0
     died: int = 0
     born: int = 0
 
@@ -39,10 +25,13 @@ class LifeSimulation(Protocol):
     def collect(self) -> frozenset[Vec2Like]:
         ...
 
-    def get_flags(self, cell: Vec2Like) -> CellFlag:
+    def get_color(self, cell: Vec2Like) -> tuple[int, int, int, int] | None:
         ...
 
     def get_digest(self) -> SimulationDigest:
+        ...
+
+    def set_debug(self, dbg: bool) -> None:
         ...
 
 
