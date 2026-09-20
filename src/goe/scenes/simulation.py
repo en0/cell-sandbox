@@ -10,7 +10,7 @@ from goe.core import Actions, LifeSimulation
 from goe.objects import Camera, HeadsUpDisplay, Simulation, Renderer, ZypherRenderer
 from goe.objects.render_fancy import FancyRenderer
 from goe.setting import RENDERER, SIMULATION
-from goe.simulations import DoomFire, GolSimulation, BriansBrainSimulation
+from goe.simulations import DoomFire, GolSimulation, BriansBrainSimulation, WCFSimulation
 
 
 @final
@@ -71,6 +71,8 @@ class SimulationScene(GameObject):
             return BriansBrainSimulation()
         elif SIMULATION == "DoomFire":
             return DoomFire()
+        elif SIMULATION == "WFC":
+            return WCFSimulation()
         raise ValueError(f"Unknown Simulation {SIMULATION}")
 
     @staticmethod

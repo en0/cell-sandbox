@@ -7,5 +7,5 @@ CAM_SCALE_MAX = 40
 CAM_MOVE_SPEED = 1000
 CAM_SCALE_SPEED = 30
 
-SIMULATION = "DoomFire" # BriansBrain, GameOfLife, DoomFire
-RENDERER = "zypher" # zypher, bloom, standard
+SIMULATION = "WFC" # BriansBrain, GameOfLife, DoomFire, WFC
+RENDERER = "standard" # zypher, bloom, standard

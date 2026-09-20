@@ -6,10 +6,40 @@ from pygame.math import clamp
 
 from goe.core import LifeSimulation, SimulationDigest
 
-BOTTOM = 25
+BOTTOM = 30
 HEIGHT = 25
-WIDTH = 60
+WIDTH = 80
 MAX_HEAT = 25
+
+
+COLOR_MAP = [
+    None,
+    None,
+    "#1B0000",
+    "#320000",
+    "#4A0000",
+    "#620000",
+    "#790000",
+    "#900000",
+    "#A80000",
+    "#BF0000",
+    "#D00000",
+    "#E00000",
+    "#F00000",
+    "#FF1600",
+    "#FF2D00",
+    "#FF4500",
+    "#FF5C00",
+    "#FF7300",
+    "#FF8900",
+    "#FF9F00",
+    "#FFB500",
+    "#FFCA00",
+    "#FFDC24",
+    "#FFE04A",
+    "#FFE878",
+    "#FFF4B0",
+]
 
 
 class DoomFire(LifeSimulation):
@@ -55,6 +85,11 @@ class DoomFire(LifeSimulation):
         return frozenset(self._flames.keys())
 
     def get_color(self, cell: Vec2Like) -> tuple[int, int, int, int] | None:
+        _, y = cell
+        if y == BOTTOM: return None
+        h = self._flames.get(cell, 0)
+        return COLOR_MAP[h]
+
         _, y = cell
         if y == BOTTOM: return None
         h = self._flames.get(cell, 0)
