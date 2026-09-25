@@ -1,6 +1,6 @@
 from collections import deque
 from collections.abc import Generator
-from random import choice
+from random import choice, choices
 from typing import NamedTuple, final, override
 
 from pygae.math import Vec2, Vec2Like
@@ -18,10 +18,45 @@ HEIGHT = 100 #60
 
 
 NEIGHBORS = ascii2tuple("""
-    .##
-    #.#
     ##.
+    #.#
+    .##
 """)
+
+
+T_GRASS_DARK = 0
+T_GRASS_STANDARD = 1
+T_GRASS_LIGHT = 2
+T_GRASS_BRIGHT = 3
+T_GRASS_HIGHLIGHT = 4
+T_WATER_DEEP = 5
+T_WATER_DARK = 6
+T_WATER_STANDARD = 7
+T_WATER_LIGHT = 8
+T_WATER_HIGHLIGHT = 9
+T_WATER_SPARKLE = 10
+T_TRANSITION_GRASS_WATER = 11
+
+TS_GRASS = set([
+    T_GRASS_DARK,
+    T_GRASS_STANDARD,
+    T_GRASS_LIGHT,
+    T_GRASS_BRIGHT,
+    T_GRASS_HIGHLIGHT,
+])
+
+TS_WATER = set([
+    T_WATER_DEEP,
+    T_WATER_DARK,
+    T_WATER_STANDARD,
+    T_WATER_LIGHT,
+    T_WATER_HIGHLIGHT,
+    T_WATER_SPARKLE,
+])
+
+TS_TRANSITION = set([
+    T_TRANSITION_GRASS_WATER
+])
 
 
 TILE_COLOR: list[tuple[int, int, int, int]] = [
@@ -73,6 +108,84 @@ for k in ADJACENT_TILES.keys():
         ADJACENT_TILES[v].add(k)
 
 
+_PRESETS: list[tuple[str, dict[Vec2, frozenset[int]]]] = [
+    ("open", {}),
+    ("shore", {
+        Vec2(0, -20):  frozenset([T_GRASS_LIGHT, T_GRASS_STANDARD]),
+        Vec2(0, 20):   frozenset([T_WATER_DARK, T_WATER_DEEP]),
+        Vec2(-20, 20): frozenset([T_GRASS_LIGHT, T_GRASS_STANDARD]),
+    }),
+    ("island", {
+        Vec2(0, 0):    frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(-30, 0):  frozenset([T_WATER_DEEP, T_WATER_DARK]),
+        Vec2(30, 0):   frozenset([T_WATER_DEEP, T_WATER_DARK]),
+        Vec2(0, -30):  frozenset([T_WATER_DEEP, T_WATER_DARK]),
+        Vec2(0, 30):   frozenset([T_WATER_DEEP, T_WATER_DARK]),
+    }),
+    ("river", {
+        Vec2(-45, -20):  frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(-40, -20):  frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(-35, -20):  frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(-30, -20):  frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(-25, -20):  frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(-20, -20):  frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(-15, -20):  frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(-10, -20):  frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(-5, -20):  frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(0, -20):    frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(5, -20):   frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(10, -20):   frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(15, -20):   frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(20, -20):   frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(25, -20):   frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(30, -20):   frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(35, -20):   frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(40, -20):   frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(45, -20):   frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+
+        Vec2(-45, 0):  frozenset([T_WATER_STANDARD, T_WATER_LIGHT]),
+        Vec2(-40, 0):  frozenset([T_WATER_STANDARD, T_WATER_LIGHT]),
+        Vec2(-35, 0):  frozenset([T_WATER_STANDARD, T_WATER_LIGHT]),
+        Vec2(-30, 0):  frozenset([T_WATER_STANDARD, T_WATER_LIGHT]),
+        Vec2(-25, 0):  frozenset([T_WATER_STANDARD, T_WATER_LIGHT]),
+        Vec2(-20, 0):  frozenset([T_WATER_STANDARD, T_WATER_LIGHT]),
+        Vec2(-15, 0):  frozenset([T_WATER_STANDARD, T_WATER_LIGHT]),
+        Vec2(-10, 0):  frozenset([T_WATER_STANDARD, T_WATER_LIGHT]),
+        Vec2(-5, 0):  frozenset([T_WATER_STANDARD, T_WATER_LIGHT]),
+        Vec2(0, 0):    frozenset([T_WATER_STANDARD, T_WATER_LIGHT]),
+        Vec2(5, 0):   frozenset([T_WATER_STANDARD, T_WATER_LIGHT]),
+        Vec2(10, 0):   frozenset([T_WATER_STANDARD, T_WATER_LIGHT]),
+        Vec2(15, 0):   frozenset([T_WATER_STANDARD, T_WATER_LIGHT]),
+        Vec2(20, 0):   frozenset([T_WATER_STANDARD, T_WATER_LIGHT]),
+        Vec2(25, 0):   frozenset([T_WATER_STANDARD, T_WATER_LIGHT]),
+        Vec2(30, 0):   frozenset([T_WATER_STANDARD, T_WATER_LIGHT]),
+        Vec2(35, 0):   frozenset([T_WATER_STANDARD, T_WATER_LIGHT]),
+        Vec2(40, 0):   frozenset([T_WATER_STANDARD, T_WATER_LIGHT]),
+        Vec2(45, 0):   frozenset([T_WATER_STANDARD, T_WATER_LIGHT]),
+
+        Vec2(-45, 20):  frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(-40, 20):  frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(-35, 20):  frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(-30, 20):  frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(-25, 20):  frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(-20, 20):  frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(-15, 20):  frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(-10, 20):  frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(-5, 20):    frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(0, 20):    frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(5, 20):    frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(10, 20):   frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(15, 20):   frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(20, 20):   frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(25, 20):   frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(30, 20):   frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(35, 20):   frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(40, 20):   frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+        Vec2(45, 20):   frozenset([T_GRASS_STANDARD, T_GRASS_LIGHT]),
+    }),
+]
+
+
 class _Envelope(NamedTuple):
     root: Vec2
     opts: set[int]
@@ -87,6 +200,7 @@ class WCFSimulation(LifeSimulation):
         self._world.center = (0, 0)
 
         self._generation: int = 0
+        self._index: int = 0
         self._cells: dict[Vec2, int] = {}
         self._super_cells: dict[Vec2, set[int]] = {}
         self._buckets: dict[int, set[Vec2]] = {}
@@ -106,7 +220,19 @@ class WCFSimulation(LifeSimulation):
 
         This could be where we do some weighting on selections or do some clustering checks, etc.
         """
-        return choice(list(self._super_cells[cell]))
+        def _weight(c, t) -> int:
+            ## TODO: ...
+            return 10
+
+        tiles = list(self._super_cells[cell])
+
+        weights: list[int] = []
+        for tile in tiles:
+            weights.append(_weight(cell, tile))
+
+        return choices(tiles, weights, k=1)[0]
+
+    #return choice(tiles)
 
     def _pick_next_cell(self, last_attempt: Vec2 | None = None) -> Vec2 | None:
         """Select the lowest entropy cell for the remaining cells
@@ -140,6 +266,16 @@ class WCFSimulation(LifeSimulation):
 
     @override
     def reload(self, preset: int | None = None) -> int:
+        # Only change if its valid.
+        # If none given, change to the current (just a reset)
+        if preset is not None:
+            if 0 <= preset < len(_PRESETS):
+                self._index = preset
+            else:
+                return -1
+
+        _, seeds = _PRESETS[self._index]
+
         self._buckets = {}
         x, y, w, h = self._world
         for _y in range(y, y + h):
@@ -150,7 +286,26 @@ class WCFSimulation(LifeSimulation):
                 self._buckets.setdefault(len(s), set()).add(v)
         self._cells = dict()
         self._generation = 0
-        return 0
+
+        tile_count = len(TILES)
+        for k, v in seeds.items():
+            self._super_cells[k] = set(v)
+
+            if k in self._buckets[tile_count]:
+                self._buckets[tile_count].remove(k)
+            else:
+                # Got to find it :/
+                for _bucket, _posabilties in self._buckets.items():
+                    if k in _posabilties:
+                        _posabilties.remove(k)
+                        break
+
+            self._buckets.setdefault(len(v), set()).add(k)
+            if not self._try_update_step(k):
+                print("WARNING!!! This preset seems to have a constraints!")
+                print("Skipping vector", k)
+
+        return self._index
 
     def _try_update_step(self, current_cell: Vec2) -> bool:
 
@@ -241,9 +396,10 @@ class WCFSimulation(LifeSimulation):
         return None if t is None else TILE_COLOR[t]
 
     def get_digest(self) -> SimulationDigest:
+        preset_name, _ = _PRESETS[self._index]
         return SimulationDigest(
             generation=self._generation,
-            preset="WFC",
+            preset=preset_name,
             alive=len(self._cells),
         )
 

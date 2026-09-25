@@ -1,7 +1,7 @@
 [project]
-name = "goe"
+name = "cell_sandbox"
 version = "0.1.0"
-description = "I just need to write code."
+description = "A sandbox to do things and stuff."
 readme = "README.md"
 authors = [
     { name = "Ian Laird", email = "irlaird@gmail.com" }
@@ -19,7 +19,7 @@ requires = ["uv_build>=0.12.10,<0.13.0"]
 build-backend = "uv_build"
 
 [tool.uv.sources]
-pygae = { path = "../pygae" }
+pygae = { git = "https://github.com/en0/pygae", rev = "main" }
 
 [dependency-groups]
 dev = [
