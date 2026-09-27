@@ -133,7 +133,8 @@ from typing import final, override
 
 from pygae.math import Vec2Like
 
-from goe.core import LifeSimulation, SimulationDigest
+from ..registry import simulation
+from ..core import LifeSimulation, SimulationDigest
 
 
 # TODO: constants — N bands, world size, falloff exponent, threshold,
@@ -148,6 +149,7 @@ _PRESETS: list[tuple[str, object]] = [
 
 
 @final
+@simulation
 class CrowdMeshSimulation(LifeSimulation):
     """Distributed wristband-wave sim. See module docstring for the design notes.
 

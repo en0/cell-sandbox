@@ -1,13 +1,14 @@
 import math
 from typing import final, override
 
-from pygae.core import GameObject
-from pygae.math import Vec2Like
 from pygame import BLEND_RGB_ADD, BLEND_RGB_MULT, SRCALPHA, Color, Surface
 from pygame.transform import smoothscale
 
-from goe.core import LifeSimulation
-from goe.objects import Camera
+from pygae.core import GameObject
+from pygae.math import Vec2Like
+
+from ..core import LifeSimulation
+from ..objects import Camera
 
 
 COLOR_BG    = (0x0a, 0x0a, 0x14)

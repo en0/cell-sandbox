@@ -6,8 +6,9 @@ from typing import NamedTuple, final, override
 from pygae.math import Vec2, Vec2Like
 from pygame import Rect
 
-from goe.core import LifeSimulation, SimulationDigest
-from goe.helpers import ascii2tuple
+from ..core import LifeSimulation, SimulationDigest
+from ..helpers import ascii2tuple
+from ..registry import simulation
 
 
 RED = (200, 0, 0, 255)
@@ -192,6 +193,7 @@ class _Envelope(NamedTuple):
 
 
 @final
+@simulation
 class WCFSimulation(LifeSimulation):
 
     def __init__(self) -> None:

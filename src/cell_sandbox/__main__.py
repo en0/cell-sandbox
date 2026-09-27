@@ -1,4 +1,4 @@
-from goe.game import GameOfLife
+from cell_sandbox.game import GameOfLife
 
 
 if __name__ == "__main__":

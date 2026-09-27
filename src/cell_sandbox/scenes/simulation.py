@@ -1,20 +1,24 @@
 from typing import final, override
+from pygame import K_1, K_2, K_3, K_4, K_5, K_6, K_7, K_8, K_9, K_0, K_DOWN, K_ESCAPE, K_HOME, K_RETURN, K_SPACE, K_UP, K_a, K_d, K_e, K_f, K_q, K_r, K_s, K_w, Surface
 
 from pygae.input import AXIS_MWHEEL_DY, DEVICE_KEYBOARD, DEVICE_MOUSE, TYPE_AXIS, TYPE_BUTTON, InputBinding
 from pygae.input.types import IInputService
-from pygame import K_1, K_2, K_3, K_4, K_5, K_6, K_7, K_8, K_9, K_0, K_DOWN, K_HOME, K_RETURN, K_SPACE, K_UP, K_a, K_d, K_e, K_f, K_q, K_r, K_s, K_w, Surface
-
 from pygae.core import GameObject
 
-from goe.core import Actions, LifeSimulation
-from goe.objects import Camera, HeadsUpDisplay, Simulation, Renderer, ZypherRenderer
-from goe.objects.render_fancy import FancyRenderer
-from goe.setting import RENDERER, SIMULATION
-from goe.simulations import DoomFire, GolSimulation, BriansBrainSimulation, WCFSimulation
+from ..core import Actions, LifeSimulation
+from ..objects import Camera, HeadsUpDisplay, Simulation, Renderer, ZypherRenderer
+from ..objects.render_fancy import FancyRenderer
+from ..setting import RENDERER
+from ..simulations import DoomFire, GolSimulation, BriansBrainSimulation, WCFSimulation
 
 
 @final
 class SimulationScene(GameObject):
+
+    def __init__(self, menu_scene: GameObject, simulation: LifeSimulation) -> None:
+        super().__init__()
+        self._sim = simulation
+        self._menu = menu_scene
 
     def _bind_keys(self):
         input_srv = self.get_service(IInputService)
@@ -42,6 +46,7 @@ class SimulationScene(GameObject):
         input_srv.bind(Actions.PRESET_7, InputBinding(TYPE_BUTTON, DEVICE_KEYBOARD, K_8))
         input_srv.bind(Actions.PRESET_8, InputBinding(TYPE_BUTTON, DEVICE_KEYBOARD, K_9))
         input_srv.bind(Actions.PRESET_9, InputBinding(TYPE_BUTTON, DEVICE_KEYBOARD, K_0))
+        input_srv.bind("MENU", InputBinding(TYPE_BUTTON, DEVICE_KEYBOARD, K_ESCAPE))
 
     @override
     def on_load(self) -> None:
@@ -50,7 +55,7 @@ class SimulationScene(GameObject):
 
         # TODO: Presets feed into sim. Use "save" service
         camera = Camera()
-        sim = self._get_simulation()
+        sim = self._sim
         simulation = Simulation(sim)
         renderer = self._get_renderer(camera, sim)
 
@@ -63,17 +68,10 @@ class SimulationScene(GameObject):
     def pre_render(self, surface: Surface, alpha: float):
         _ = surface.fill("black")
 
-    @staticmethod
-    def _get_simulation():
-        if SIMULATION == "GameOfLife":
-            return GolSimulation()
-        elif SIMULATION == "BriansBrain":
-            return BriansBrainSimulation()
-        elif SIMULATION == "DoomFire":
-            return DoomFire()
-        elif SIMULATION == "WFC":
-            return WCFSimulation()
-        raise ValueError(f"Unknown Simulation {SIMULATION}")
+    @override
+    def post_fixed_update(self, delta: float) -> None:
+        if self.input_pressed("MENU"):
+            self.set_scene(self._menu)
 
     @staticmethod
     def _get_renderer(camera: Camera, sim: LifeSimulation):

@@ -2,7 +2,7 @@ from typing import final, override
 
 from pygae.core import GameObject
 
-from goe.core import Actions, LifeSimulation, make_sim_digest, make_sim_speed_event
+from ..core import Actions, LifeSimulation, make_sim_digest, make_sim_speed_event
 
 
 @final

@@ -1,10 +1,12 @@
 from collections import deque
 from random import randint
+from typing import final
 
 from pygae.math import Vec2, Vec2Like
 from pygame.math import clamp
 
-from goe.core import LifeSimulation, SimulationDigest
+from ..core import LifeSimulation, SimulationDigest
+from ..registry import simulation
 
 BOTTOM = 30
 HEIGHT = 25
@@ -42,6 +44,8 @@ COLOR_MAP = [
 ]
 
 
+@final
+@simulation
 class DoomFire(LifeSimulation):
 
     def __init__(self) -> None:

@@ -1,10 +1,11 @@
 from typing import final, override
+from pygame import Surface, draw
 
 from pygae.core import GameObject
 from pygae.math import Vec2Like
-from pygame import Surface, draw
-from goe.core import LifeSimulation
-from goe.objects import Camera
+
+from ..core import LifeSimulation
+from ..objects import Camera
 
 
 COLOR_BG   = (240, 240, 240)

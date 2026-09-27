@@ -4,7 +4,7 @@ from pygae.core import GameObject
 from pygame import Surface
 from pygame.font import Font, SysFont
 
-from goe.core import Events, SimulationDigest
+from ..core import Events, SimulationDigest
 
 
 FONT_SIZE = 25

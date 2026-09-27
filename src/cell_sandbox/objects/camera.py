@@ -1,13 +1,13 @@
 from typing import final, override
+from pygame import Rect
 
 from pygae.core import GameObject
 from pygae.input import IInputService
 from pygae.math import Vec2, Vec2Like
-from pygame import Rect
 
-from goe.core import Actions, make_cam_pos_event, make_cam_zoom_event
-from goe.helpers import normalize_value
-from goe.setting import CAM_SCALE_MIN, CAM_SCALE_MAX, CAM_MOVE_SPEED, CAM_SCALE_SPEED, SCREEN_SIZE
+from ..core import Actions, make_cam_pos_event, make_cam_zoom_event
+from ..helpers import normalize_value
+from ..setting import CAM_SCALE_MIN, CAM_SCALE_MAX, CAM_MOVE_SPEED, CAM_SCALE_SPEED, SCREEN_SIZE
 
 
 SCALE_DEFAULT = 30

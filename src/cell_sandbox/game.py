@@ -2,8 +2,9 @@ from typing import final, override
 
 from pygae.core import GameEngine
 
-from goe.scenes import SimulationScene
-from goe.setting import SCREEN_SIZE, FIXED_DT, MAX_FRAMERATE
+from cell_sandbox.scenes.selection import SelectionScene
+
+from .setting import SCREEN_SIZE, FIXED_DT, MAX_FRAMERATE
 
 
 @final
@@ -15,4 +16,4 @@ class GameOfLife(GameEngine):
 
     @override
     def on_load(self) -> None:
-        self.set_scene(SimulationScene())
+        self.set_scene(SelectionScene())

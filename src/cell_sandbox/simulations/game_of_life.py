@@ -2,8 +2,9 @@ from typing import final, override
 
 from pygae.math import Vec2, Vec2Like
 
-from goe.core import LifeSimulation, SimulationDigest
-from goe.helpers import ascii2tuple, random_field
+from ..core import LifeSimulation, SimulationDigest
+from ..helpers import ascii2tuple, random_field
+from ..registry import simulation
 
 
 _STATE_BORN = 0
@@ -204,6 +205,7 @@ _PRESETS = [
 
 
 @final
+@simulation
 class GolSimulation(LifeSimulation):
 
     def __init__(self):

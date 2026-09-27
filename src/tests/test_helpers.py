@@ -1,5 +1,6 @@
 import pytest
-from goe.helpers import ascii2tuple, has_any_flag, normalize_value
+
+from cell_sandbox.helpers import ascii2tuple, has_any_flag, normalize_value
 
 class TestAscii2vec:
     def test_ascii2vec_returns_location_of_single_hash(self):

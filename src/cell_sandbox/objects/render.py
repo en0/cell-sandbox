@@ -3,9 +3,9 @@ from typing import final, override
 from pygae.core import GameObject
 from pygae.math import Vec2Like
 from pygame import Surface, draw
-from goe.core import LifeSimulation
-from goe.objects import Camera
-from goe.setting import SIMULATION
+
+from ..core import LifeSimulation
+from ..objects import Camera
 
 
 COLOR_BG = (0x0a, 0x0a, 0x0a)
@@ -35,7 +35,7 @@ class Renderer(GameObject):
         surface.fill(COLOR_BG)
         scale = self._cam.get_pixel_scale()
         self._sim.set_debug(self._cam.get_zoom() > DBG_ZOOM)
-        width = scale if SIMULATION in ("DoomFire", "WFC") else 0.8*scale
+        width = scale
         for pos in self._buffer:
             color = self._sim.get_color(pos)
             if color:
