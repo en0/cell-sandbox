@@ -9,7 +9,7 @@ from ..core import Actions, LifeSimulation
 from ..objects import Camera, HeadsUpDisplay, Simulation, Renderer, ZypherRenderer
 from ..objects.render_fancy import FancyRenderer
 from ..setting import RENDERER
-from ..simulations import DoomFire, GolSimulation, BriansBrainSimulation, WCFSimulation
+from ..simulations import DoomFire, GolSimulation, BriansBrainSimulation, WFCSimulation
 
 
 @final

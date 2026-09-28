@@ -129,9 +129,10 @@ TODO (dig in here) — build order suggestion
       tomography, localization.
 """
 
-from typing import final, override
+from dataclasses import dataclass
+from typing import Iterable, NamedTuple, Protocol, final, override, runtime_checkable
 
-from pygae.math import Vec2Like
+from pygae.math import Vec2, Vec2Like
 
 from ..registry import simulation
 from ..core import LifeSimulation, SimulationDigest
@@ -139,12 +140,47 @@ from ..core import LifeSimulation, SimulationDigest
 
 # TODO: constants — N bands, world size, falloff exponent, threshold,
 # min/max neighbor counts, obstacle definitions, tile/phase colors.
+CELL_POWER = 2500
+CELL_POWER_SOFTENING = 2
+
+CellState = tuple[int, tuple[int, int, int, int]]
+EdgeReport = tuple[int, list[int, float]]
+
+@runtime_checkable
+class Controller(Protocol):
+
+    def update(self, edges: Iterable[EdgeReport]) -> Iterable[CellState]:
+        ...
+
+
+class NaiveController:
+
+    def update(self, edges: Iterable[EdgeReport]) -> Iterable[CellState]:
+        # TODO: discover the graph
+        # TODO: render the animation
+        return [(id_, (55, 55, 255, 255)) for id_, _ in edges]
+
+
+class Cell(NamedTuple):
+    location: Vec2
+    color: tuple[int, int, int, int] = (55, 55, 255, 255)
 
 
 # TODO: presets — different crowd layouts (uniform scatter, clustered,
 # with-obstacles, sparse-bridge stress test).
-_PRESETS: list[tuple[str, object]] = [
-    ("scatter", None),
+_PRESETS: list[tuple[str, set[Cell]]] = [
+    ("debug-1", {
+        Cell(Vec2(-10, 0)),
+        Cell(Vec2(10, 0)),
+    }),
+    ("debug-2", {
+        Cell(Vec2(-100, 0)),
+        Cell(Vec2(100, 0)),
+    }),
+    ("debug-3", {
+        Cell(Vec2(-1, 0)),
+        Cell(Vec2(0, 0)),
+    })
 ]
 
 
@@ -160,6 +196,8 @@ class CrowdMeshSimulation(LifeSimulation):
     def __init__(self) -> None:
         self._index: int = 0
         self._generation: int = 0
+        self._cells: dict[Vec2, (int, tuple[int, int, int, int])] = {}
+        self._ctrl: Controller = NaiveController()
         # TODO: band positions, the directed weighted edge reports, the
         # controller's assembled graph, per-band wave state, source node(s).
         _ = self.reload()
@@ -185,23 +223,57 @@ class CrowdMeshSimulation(LifeSimulation):
             else:
                 return -1
         # TODO: scatter bands, build reports, assemble + repair graph, seed wave.
+        self._cells = {x.location: (hash(x.location), x.color) for x in (_PRESETS[self._index][1])}
         self._generation = 0
         return self._index
 
     @override
     def update_step(self) -> int:
-        # TODO: advance the flood-fill wave one step.
+
+        edges = {}    # A edge for each cell received.
+        rev_map = {}  # A reverse map to lookup cell vector by id.
+
+        # Find every edge for every cell.
+        for a, (id_, _) in self._cells.items():
+            rev_map[id_] = a
+            for b, (b_id_, _) in self._cells.items():
+                if a != b:
+                    # inverse-square k/(r^2 + ε)
+                    r = a.distance(b)
+                    weight = CELL_POWER / ((r*r) + CELL_POWER_SOFTENING)
+                    # scattering the edge out. cell A told cell B it's id.
+                    edges.setdefault(b_id_, []).append((id_, weight))
+
+        # Update the controller and get the new display
+        # Copy the display into the cell map.
+        for id_, color in self._ctrl.update(edges.items()):
+            cell = rev_map[id_]
+            self._cells[cell] = (id_, color)
+
+        #self._debug_colors(edges)
+
+        self._generation += 1
         return self._generation
+
+    def _debug_colors(self, edges):
+        """ DEBUGGING
+
+        change color based on geometric mean of it's edge weights
+        """
+        for v, (id_, _) in self._cells.items():
+            power = sum([w for _, w in edges[id_]]) / len(edges[id_])
+            c = min(255, int(power * 0.3))
+            color = (c*(55/255), c*(55/255), c, 255)
+            self._cells[v] = (id_, color)
 
     @override
     def collect(self) -> frozenset[Vec2Like]:
-        # TODO: return the grid cells the bands render to.
-        return frozenset()
+        return frozenset(self._cells.keys())
 
     @override
     def get_color(self, cell: Vec2Like) -> tuple[int, int, int, int] | None:
-        # TODO: color a band by its wave phase / intensity.
-        return None
+        _, color = self._cells.get(cell, (None, None))
+        return color
 
     @override
     def get_digest(self) -> SimulationDigest:

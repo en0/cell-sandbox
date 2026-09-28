@@ -14,8 +14,8 @@ from ..registry import simulation
 RED = (200, 0, 0, 255)
 
 
-WIDTH = 100 #80
-HEIGHT = 100 #60
+WIDTH = 100
+HEIGHT = 100
 
 
 NEIGHBORS = ascii2tuple("""
@@ -194,7 +194,7 @@ class _Envelope(NamedTuple):
 
 @final
 @simulation
-class WCFSimulation(LifeSimulation):
+class WFCSimulation(LifeSimulation):
 
     def __init__(self) -> None:
 
@@ -233,8 +233,6 @@ class WCFSimulation(LifeSimulation):
             weights.append(_weight(cell, tile))
 
         return choices(tiles, weights, k=1)[0]
-
-    #return choice(tiles)
 
     def _pick_next_cell(self, last_attempt: Vec2 | None = None) -> Vec2 | None:
         """Select the lowest entropy cell for the remaining cells
