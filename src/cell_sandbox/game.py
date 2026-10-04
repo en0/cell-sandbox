@@ -17,5 +17,5 @@ class GameOfLife(GameEngine):
 
     @override
     def on_load(self) -> None:
-        #self.set_scene(SelectionScene())
-        self.set_scene(BrainStorm())
+        self.set_scene(SelectionScene())
+        #self.set_scene(BrainStorm())

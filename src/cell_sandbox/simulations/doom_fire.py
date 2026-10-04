@@ -5,6 +5,8 @@ from typing import final
 from pygae.math import Vec2, Vec2Like
 from pygame.math import clamp
 
+from cell_sandbox.renderers.cell_renderer import CellRenderer
+
 from ..core import LifeSimulation, SimulationDigest
 from ..registry import simulation
 
@@ -45,7 +47,7 @@ COLOR_MAP = [
 
 
 @final
-@simulation
+@simulation(CellRenderer)
 class DoomFire(LifeSimulation):
 
     def __init__(self) -> None:

@@ -5,18 +5,16 @@ from pygae.input import AXIS_MWHEEL_DY, DEVICE_KEYBOARD, DEVICE_MOUSE, TYPE_AXIS
 from pygae.input.types import IInputService
 from pygae.core import GameObject
 
-from ..core import Actions, LifeSimulation
-from ..objects import Camera, HeadsUpDisplay, Simulation, Renderer, ZypherRenderer
-from ..objects.render_fancy import FancyRenderer
-from ..setting import RENDERER
-from ..simulations import DoomFire, GolSimulation, BriansBrainSimulation, WFCSimulation
+from ..core import Actions, LifeSimulation, RendererConstructor
+from ..objects import Camera, HeadsUpDisplay, Simulation
 
 
 @final
 class SimulationScene(GameObject):
 
-    def __init__(self, menu_scene: GameObject, simulation: LifeSimulation) -> None:
+    def __init__(self, menu_scene: GameObject, t_renderer: RendererConstructor, simulation: LifeSimulation) -> None:
         super().__init__()
+        self._ren_t = t_renderer
         self._sim = simulation
         self._menu = menu_scene
 
@@ -57,7 +55,7 @@ class SimulationScene(GameObject):
         camera = Camera()
         sim = self._sim
         simulation = Simulation(sim)
-        renderer = self._get_renderer(camera, sim)
+        renderer = self._ren_t(camera, sim)
 
         self.spawn_child(camera)
         self.spawn_child(simulation)
@@ -72,14 +70,4 @@ class SimulationScene(GameObject):
     def post_fixed_update(self, delta: float) -> None:
         if self.input_pressed("MENU"):
             self.set_scene(self._menu)
-
-    @staticmethod
-    def _get_renderer(camera: Camera, sim: LifeSimulation):
-        if RENDERER == "standard":
-            return Renderer(camera, sim)
-        elif RENDERER == "zypher":
-            return ZypherRenderer(camera, sim)
-        elif RENDERER == "bloom":
-            return FancyRenderer(camera, sim)
-        raise ValueError(f"Unknown Renderer {RENDERER}")
 

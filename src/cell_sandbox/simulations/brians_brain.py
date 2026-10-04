@@ -2,6 +2,8 @@ from typing import final, override
 
 from pygae.math import Vec2, Vec2Like
 
+from cell_sandbox.renderers.cell_renderer import CellRenderer
+
 from ..core import LifeSimulation, SimulationDigest
 from ..helpers import ascii2tuple, random_field
 from ..registry import simulation
@@ -62,7 +64,7 @@ _PRESETS = [
 
 
 @final
-@simulation
+@simulation(CellRenderer)
 class BriansBrainSimulation(LifeSimulation):
 
     WIDTH = 50

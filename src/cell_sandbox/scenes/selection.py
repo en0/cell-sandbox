@@ -44,15 +44,15 @@ class SelectionScene(GameObject):
             self._selected_index += 1
         self._selected_index = max(min(self._selected_index, len(self._sims) - 1), 0)
         if self.input_pressed("MENU_SELECT"):
-            _, sim = self._sims[self._selected_index]
-            self.set_scene(SimulationScene(self, sim))
+            _, sim, ren = self._sims[self._selected_index]
+            self.set_scene(SimulationScene(self, ren, sim()))
 
     def pre_render(self, surface: Surface, alpha: float):
         surface.fill(BG_COLOR)
 
     def post_render(self, surface: Surface, alpha: float):
         surfs = []
-        for i, (name, _) in enumerate(self._sims):
+        for i, (name, *_) in enumerate(self._sims):
             bg_color = FONT_COLOR_SEL if i == self._selected_index else None
             surf = self._font.render(name, True, FONT_COLOR, bg_color)
             surfs.append(surf)

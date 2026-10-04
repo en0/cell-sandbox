@@ -134,6 +134,8 @@ from typing import Iterable, NamedTuple, Protocol, final, override, runtime_chec
 
 from pygae.math import Vec2, Vec2Like
 
+from cell_sandbox.renderers.cell_renderer import CellRenderer
+
 from ..registry import simulation
 from ..core import LifeSimulation, SimulationDigest
 
@@ -185,7 +187,7 @@ _PRESETS: list[tuple[str, set[Cell]]] = [
 
 
 @final
-@simulation
+@simulation(CellRenderer)
 class CrowdMeshSimulation(LifeSimulation):
     """Distributed wristband-wave sim. See module docstring for the design notes.
 
