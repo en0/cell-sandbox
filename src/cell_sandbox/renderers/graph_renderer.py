@@ -38,4 +38,4 @@ class GraphRenderer(GameObject):
             _ = draw.line(surface, c, _a, _b, 1)
         for n, c in self._nodes:
             _n = self._cam.world_to_screen(n, alpha)
-            _ = draw.circle(surface, c, _n, width//2)
+            _ = draw.circle(surface, c, _n, width)

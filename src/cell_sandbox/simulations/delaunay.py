@@ -1,13 +1,14 @@
-
 from collections import Counter
 from random import randint
 from typing import Iterable, final, override
 
-from pygae.core import GameObject
 from pygae.math import Vec2
-from pygame import K_r, Surface, draw
 
-from cell_sandbox.setting import SCREEN_SIZE
+from cell_sandbox.renderers import GraphRenderer
+
+from ..core import GraphSimState, LifeSimulation, SimulationDigest
+from ..registry import simulation
+from ..setting import SCREEN_SIZE
 
 SCREEN_CENTER_X = (SCREEN_SIZE[0]//2)
 SCREEN_CENTER_Y = (SCREEN_SIZE[1]//2)
@@ -21,11 +22,12 @@ POINT_COUNT = 200
 LINE_COLOR = (55, 10, 10, 255)
 POINT_COLOR = (255, 10, 10, 255)
 
+
 @final
-class BrainStorm(GameObject):
+@simulation(GraphRenderer)
+class DelaunaySimulation(LifeSimulation[GraphSimState]):
 
     def __init__(self) -> None:
-        super().__init__()
         self._points: list[Vec2] = []
         self._tri: set[tuple[Vec2, Vec2, Vec2]] = set()
         scale_factor = (MAX_X * MAX_Y * 2)
@@ -35,6 +37,7 @@ class BrainStorm(GameObject):
             Vec2(-scale_factor, scale_factor),
         )
         self._super_set = set(self._super)
+        _ = self.reload()
 
     def _in_circumcircle(self, point: Vec2, tri: tuple[Vec2, Vec2, Vec2]) -> bool:
         # TODO: Change this to use the determinant form.
@@ -68,39 +71,36 @@ class BrainStorm(GameObject):
 
         self._points.append(point)
 
-    def _remove_super_triangle(self):
-        self._tri = {
-            t for t in self._tri
-            if not set(t).intersection(self._super_set)
-        }
-
-    def _reset(self) -> None:
+    @override
+    def reload(self, preset: int | None = None) -> int:
         self._points.clear()
         self._tri.clear()
         self._tri.add(self._super)
+        return 0
 
-    def on_load(self) -> None:
-        self.bind_keyboard_button("RESET", K_r)
-        self._reset()
-
-    def pre_fixed_update(self, delta: float):
-        if self.input_pressed("RESET"): self.on_load()
-        if len(self._points) >= POINT_COUNT: return
+    @override
+    def update_step(self) -> int:
+        if len(self._points) >= POINT_COUNT: return 0
         x = randint(MIN_X, MAX_X)
         y = randint(MIN_Y, MAX_Y)
         self._add_point(Vec2(x, y))
+        return 0
 
-    def pre_render(self, surface: Surface, alpha: float):
-        surface.fill("black")
-
-    def post_render(self, surface: Surface, alpha: float):
+    @override
+    def get_state(self) -> GraphSimState:
+        nodes = [(point, POINT_COLOR) for point in self._points]
+        edges = []
         for (a, b, c) in self._tri:
             if not {a, b, c}.intersection(self._super_set):
-                draw.line(surface, LINE_COLOR, self._to_world(a), self._to_world(b), 1)
-                draw.line(surface, LINE_COLOR, self._to_world(b), self._to_world(c), 1)
-                draw.line(surface, LINE_COLOR, self._to_world(c), self._to_world(a), 1)
-        for point in map(self._to_world, self._points):
-            draw.circle(surface, POINT_COLOR, point, 4)
+                edges.append((a, b, LINE_COLOR))
+                edges.append((b, c, LINE_COLOR))
+                edges.append((c, a, LINE_COLOR))
+        return (nodes, edges)
 
-    def _to_world(self, vect: Vec2) -> Vec2:
-        return vect + (SCREEN_CENTER_X, SCREEN_CENTER_Y)
+    @override
+    def get_digest(self) -> SimulationDigest:
+        return SimulationDigest(
+            generation=0,
+            preset="N/A",
+            alive=0,
+        )
