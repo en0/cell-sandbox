@@ -35,9 +35,10 @@ class CellRenderer(GameObject):
     def pre_render(self, surface: Surface, alpha: float):
         surface.fill(COLOR_BG)
         scale = self._cam.get_pixel_scale()
+        box = self._cam.get_bbox()
         width = scale
         for pos in self._buffer:
-            color = self._colors.get(pos)
-            if color:
+            if not box.collidepoint(pos): continue
+            if color := self._colors.get(pos):
                 _pos = self._cam.world_to_screen(pos, alpha)
                 _ = draw.rect(surface, color, (_pos.x-(width/2), _pos.y-(width/2), width, width))

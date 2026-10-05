@@ -38,9 +38,20 @@ class HeadsUpDisplay(GameObject):
             HUD_CELL: None
         }
 
+    @staticmethod
+    def _format_population_report(digest: SimulationDigest):
+        if digest.born > -1 and digest.died > -1:
+            return f"{digest.alive} (born={digest.born}, died={digest.died})"
+        elif digest.born > -1:
+            return f"{digest.alive} (born={digest.born})"
+        elif digest.died > -1:
+            return f"{digest.alive} (died={digest.died})"
+        else:
+            return f"{digest.alive}"
+
     def _render_digest(self, digest: SimulationDigest):
         self._render_rhud_elem(HUD_GENERATION, digest.generation)
-        self._render_rhud_elem(HUD_CELL, f"{digest.alive} (born={digest.born}, died={digest.died})")
+        self._render_rhud_elem(HUD_CELL, self._format_population_report(digest))
         self._render_rhud_elem(HUD_PRESET, digest.preset)
 
     def _render_lhud_elem(self, label, value) -> None:

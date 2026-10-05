@@ -30,7 +30,9 @@ class ZypherRenderer(GameObject):
         surface.fill(COLOR_BG)
         scale = self._cam.get_pixel_scale()
         width = 0.8*scale
+        bbox = self._cam.get_bbox().inflate(width, width)
         for pos, c in self._cells.items():
+            if not bbox.collidepoint(pos): continue
             if c:
                 _pos = self._cam.world_to_screen(pos, alpha)
                 _ = draw.circle(surface, COLOR_CELL, (_pos.x-(width/2), _pos.y-(width/2)), scale)

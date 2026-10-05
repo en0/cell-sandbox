@@ -32,10 +32,14 @@ class GraphRenderer(GameObject):
         surface.fill(COLOR_BG)
         scale = self._cam.get_pixel_scale()
         width = 0.8*scale
+        box = self._cam.get_bbox().inflate(width, width)
         for a, b, c in self._lines:
-            _a = self._cam.world_to_screen(a, alpha)
-            _b = self._cam.world_to_screen(b, alpha)
+            clipped = box.clipline(*a, *b)
+            if not clipped: continue
+            _a = self._cam.world_to_screen(clipped[0], alpha)
+            _b = self._cam.world_to_screen(clipped[1], alpha)
             _ = draw.line(surface, c, _a, _b, 1)
         for n, c in self._nodes:
+            if not box.collidepoint(n): continue
             _n = self._cam.world_to_screen(n, alpha)
             _ = draw.circle(surface, c, _n, width)

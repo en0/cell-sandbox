@@ -21,9 +21,9 @@ GraphSimState = tuple[
 class SimulationDigest(NamedTuple):
     generation: int
     preset: str
-    alive: int
-    died: int = 0
-    born: int = 0
+    alive: int = -1
+    died: int = -1
+    born: int = -1
 
 
 class LifeSimulation(Protocol[T]):

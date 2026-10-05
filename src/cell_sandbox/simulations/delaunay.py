@@ -12,7 +12,7 @@ from ..setting import SCREEN_SIZE
 
 SCREEN_CENTER_X = (SCREEN_SIZE[0]//2)
 SCREEN_CENTER_Y = (SCREEN_SIZE[1]//2)
-SCALE = 0.8
+SCALE = 0.5
 
 MIN_X, MAX_X = int(-(SCREEN_CENTER_X*SCALE)), int((SCREEN_CENTER_X*SCALE))
 MIN_Y, MAX_Y = int(-(SCREEN_CENTER_Y*SCALE)), int((SCREEN_CENTER_Y*SCALE))
@@ -28,6 +28,7 @@ POINT_COLOR = (255, 10, 10, 255)
 class DelaunaySimulation(LifeSimulation[GraphSimState]):
 
     def __init__(self) -> None:
+        self._generation = 0
         self._points: list[Vec2] = []
         self._tri: set[tuple[Vec2, Vec2, Vec2]] = set()
         scale_factor = (MAX_X * MAX_Y * 2)
@@ -73,6 +74,7 @@ class DelaunaySimulation(LifeSimulation[GraphSimState]):
 
     @override
     def reload(self, preset: int | None = None) -> int:
+        self._generation = 0
         self._points.clear()
         self._tri.clear()
         self._tri.add(self._super)
@@ -84,7 +86,8 @@ class DelaunaySimulation(LifeSimulation[GraphSimState]):
         x = randint(MIN_X, MAX_X)
         y = randint(MIN_Y, MAX_Y)
         self._add_point(Vec2(x, y))
-        return 0
+        self._generation += 1
+        return self._generation
 
     @override
     def get_state(self) -> GraphSimState:
@@ -100,7 +103,7 @@ class DelaunaySimulation(LifeSimulation[GraphSimState]):
     @override
     def get_digest(self) -> SimulationDigest:
         return SimulationDigest(
-            generation=0,
-            preset="N/A",
-            alive=0,
+            generation=self._generation,
+            preset="Bowyer-Watson",
+            alive=len(self._points),
         )
