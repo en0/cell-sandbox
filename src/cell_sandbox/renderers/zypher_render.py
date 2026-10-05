@@ -2,9 +2,9 @@ from typing import final, override
 from pygame import Surface, draw
 
 from pygae.core import GameObject
-from pygae.math import Vec2Like
+from pygae.math import Vec2, Vec2Like
 
-from ..core import LifeSimulation
+from ..core import AColor, CellSimState, LifeSimulation
 from ..objects import Camera
 
 
@@ -15,22 +15,22 @@ COLOR_CELL = (198, 230, 251)
 @final
 class ZypherRenderer(GameObject):
 
-    def __init__(self, camera: Camera, sim: LifeSimulation) -> None:
+    def __init__(self, camera: Camera, sim: LifeSimulation[CellSimState]) -> None:
         super().__init__()
-        self._cells: frozenset[Vec2Like] = frozenset()
+        self._cells: dict[Vec2, AColor | None] = dict()
         self._cam = camera
         self._sim = sim
 
     @override
     def fixed_update(self, delta: float) -> None:
-        self._cells = self._sim.collect()
+        self._cells = dict(self._sim.get_state())
 
     @override
     def pre_render(self, surface: Surface, alpha: float):
         surface.fill(COLOR_BG)
         scale = self._cam.get_pixel_scale()
         width = 0.8*scale
-        for pos in self._cells:
-            if self._sim.get_color(pos):
+        for pos, c in self._cells.items():
+            if c:
                 _pos = self._cam.world_to_screen(pos, alpha)
                 _ = draw.circle(surface, COLOR_CELL, (_pos.x-(width/2), _pos.y-(width/2)), scale)

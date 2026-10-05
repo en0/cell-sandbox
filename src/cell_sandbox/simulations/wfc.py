@@ -6,7 +6,9 @@ from typing import NamedTuple, final, override
 from pygae.math import Vec2, Vec2Like
 from pygame import Rect
 
-from ..core import LifeSimulation, SimulationDigest
+from cell_sandbox.renderers import CellRenderer
+
+from ..core import CellSimState, LifeSimulation, SimulationDigest
 from ..helpers import ascii2tuple
 from ..registry import simulation
 
@@ -193,7 +195,7 @@ class _Envelope(NamedTuple):
 
 
 @final
-@simulation
+@simulation(CellRenderer)
 class WFCSimulation(LifeSimulation):
 
     def __init__(self) -> None:
@@ -369,7 +371,7 @@ class WFCSimulation(LifeSimulation):
 
         return True
 
-
+    @override
     def update_step(self) -> int:
 
         # Get the next best cell to work on. if none, we are done
@@ -388,13 +390,11 @@ class WFCSimulation(LifeSimulation):
         _ = self.reload()
         return self._generation
 
-    def collect(self) -> frozenset[Vec2Like]:
-        return frozenset(self._cells.keys())
+    @override
+    def get_state(self) -> CellSimState:
+        return [(k, TILE_COLOR[v]) for k, v in self._cells.items()]
 
-    def get_color(self, cell: Vec2Like) -> tuple[int, int, int, int] | None:
-        t = self._cells.get(cell)
-        return None if t is None else TILE_COLOR[t]
-
+    @override
     def get_digest(self) -> SimulationDigest:
         preset_name, _ = _PRESETS[self._index]
         return SimulationDigest(
@@ -402,6 +402,3 @@ class WFCSimulation(LifeSimulation):
             preset=preset_name,
             alive=len(self._cells),
         )
-
-    def set_debug(self, dbg: bool) -> None:
-        ...

@@ -1,10 +1,10 @@
 from typing import final, override
 
-from pygae.math import Vec2, Vec2Like
+from pygae.math import Vec2
 
 from cell_sandbox.renderers import FancyRenderer
 
-from ..core import LifeSimulation, SimulationDigest
+from ..core import LifeSimulation, SimulationDigest, CellSimState
 from ..helpers import ascii2tuple, random_field
 from ..registry import simulation
 
@@ -12,18 +12,7 @@ from ..registry import simulation
 _STATE_BORN = 0
 _STATE_ALIVE = 1
 _STATE_DIED = 2
-
-_STATE_TO_COLOR = {
-    _STATE_BORN:  (0, 0, 170, 255),
-    _STATE_ALIVE: (0, 0, 170, 255),
-    _STATE_DIED: None,
-}
-
-_STATE_TO_COLOR_DEBUG = {
-    _STATE_BORN:  ( 0, 50, 170, 255),
-    _STATE_ALIVE: ( 0,  0, 170, 255),
-    _STATE_DIED:  (30, 20,  20, 255),
-}
+_CELL_COLOR = (0, 0, 170, 255)
 
 
 _NEIGHBORS = ascii2tuple("""
@@ -208,7 +197,7 @@ _PRESETS = [
 
 @final
 @simulation(FancyRenderer)
-class GolSimulation(LifeSimulation):
+class GolSimulation(LifeSimulation[CellSimState]):
 
     def __init__(self):
         self._index = 0
@@ -217,7 +206,6 @@ class GolSimulation(LifeSimulation):
         self._alive: frozenset[Vec2] = frozenset()
         self._died: frozenset[Vec2] = frozenset()
         self._born: frozenset[Vec2] = frozenset()
-        self._palet = _STATE_TO_COLOR
 
     @override
     def reload(self, preset: int | None = None) -> int:
@@ -265,8 +253,8 @@ class GolSimulation(LifeSimulation):
         return self._generation
 
     @override
-    def collect(self) -> frozenset[Vec2Like]:
-        return self._alive
+    def get_state(self) -> CellSimState:
+        return [(v, _CELL_COLOR) for v in self._alive]
 
     @override
     def get_digest(self) -> SimulationDigest:
@@ -278,17 +266,3 @@ class GolSimulation(LifeSimulation):
             born=len(self._born),
             died=len(self._died),
         )
-
-    @override
-    def get_color(self, cell: Vec2Like) -> tuple[int, int, int, int] | None:
-        if cell in self._died:
-            return self._palet[_STATE_DIED]
-        elif cell in self._born:
-            return self._palet[_STATE_BORN]
-        elif cell in self._alive:
-            return self._palet[_STATE_ALIVE]
-        return None
-
-    @override
-    def set_debug(self, dbg: bool) -> None:
-        self._palet = _STATE_TO_COLOR_DEBUG if dbg else _STATE_TO_COLOR

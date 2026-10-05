@@ -7,7 +7,7 @@ from pygame.transform import smoothscale
 from pygae.core import GameObject
 from pygae.math import Vec2Like
 
-from ..core import LifeSimulation
+from ..core import LifeSimulation, CellSimState
 from ..objects import Camera
 
 
@@ -33,14 +33,13 @@ def _make_bloom_map(size: int) -> Surface:
 @final
 class FancyRenderer(GameObject):
 
-    def __init__(self, camera: Camera, sim: LifeSimulation) -> None:
+    def __init__(self, camera: Camera, sim: LifeSimulation[CellSimState]) -> None:
         super().__init__()
         self._cam = camera
         self._sim = sim
         self._bloom = None
-        self._prev: frozenset[Vec2Like] = frozenset()
-        self._cells: frozenset[Vec2Like] = frozenset()
         self._buffer: dict[Vec2Like, float] = dict()
+        self._alive: frozenset[Vec2Like] = frozenset()
         self._to_remove: set[Vec2Like] = set()
         self._bloom_cache: dict[int, tuple[int, tuple[int, int, int, int]]] = dict()
 
@@ -61,9 +60,8 @@ class FancyRenderer(GameObject):
 
     @override
     def post_fixed_update(self, delta: float) -> None:
-        self._prev = self._cells
-        self._cells = self._sim.collect()
-        for c in self._cells:
+        self._alive = frozenset(x for x, _ in self._sim.get_state())
+        for c in self._alive:
             _ = self._buffer.setdefault(c, 0)
         for c in self._to_remove:
             del self._buffer[c]
@@ -73,15 +71,13 @@ class FancyRenderer(GameObject):
     def pre_update(self, delta: float) -> None:
         for k in self._buffer.keys():
             v = self._buffer[k]
-            c = self._sim.get_color(k)
-            if c is not None:
+            if k in self._alive:
                 v += (1 - v) * (1 - math.exp(-10*delta))
             else:
                 v -= 5 * delta
             self._buffer[k] = intensity = max(min(v, 1), 0)
             if intensity <= 0:
                 self._to_remove.add(k)
-
 
     @override
     def pre_render(self, surface: Surface, alpha: float):

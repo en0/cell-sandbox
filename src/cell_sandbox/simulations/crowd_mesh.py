@@ -129,15 +129,15 @@ TODO (dig in here) — build order suggestion
       tomography, localization.
 """
 
-from dataclasses import dataclass
-from typing import Iterable, NamedTuple, Protocol, final, override, runtime_checkable
+from collections.abc import Iterable
+from typing import NamedTuple, Protocol, final, override, runtime_checkable
 
-from pygae.math import Vec2, Vec2Like
+from pygae.math import Vec2
 
 from cell_sandbox.renderers.cell_renderer import CellRenderer
 
 from ..registry import simulation
-from ..core import LifeSimulation, SimulationDigest
+from ..core import AColor, CellSimState, LifeSimulation, SimulationDigest
 
 
 # TODO: constants — N bands, world size, falloff exponent, threshold,
@@ -188,7 +188,7 @@ _PRESETS: list[tuple[str, set[Cell]]] = [
 
 @final
 @simulation(CellRenderer)
-class CrowdMeshSimulation(LifeSimulation):
+class CrowdMeshSimulation(LifeSimulation[CellSimState]):
     """Distributed wristband-wave sim. See module docstring for the design notes.
 
     First pass: static kNN-ish directed graph -> connectivity repair -> flood-fill
@@ -198,7 +198,7 @@ class CrowdMeshSimulation(LifeSimulation):
     def __init__(self) -> None:
         self._index: int = 0
         self._generation: int = 0
-        self._cells: dict[Vec2, (int, tuple[int, int, int, int])] = {}
+        self._cells: dict[Vec2, tuple[int, AColor]] = {}
         self._ctrl: Controller = NaiveController()
         # TODO: band positions, the directed weighted edge reports, the
         # controller's assembled graph, per-band wave state, source node(s).
@@ -257,25 +257,9 @@ class CrowdMeshSimulation(LifeSimulation):
         self._generation += 1
         return self._generation
 
-    def _debug_colors(self, edges):
-        """ DEBUGGING
-
-        change color based on geometric mean of it's edge weights
-        """
-        for v, (id_, _) in self._cells.items():
-            power = sum([w for _, w in edges[id_]]) / len(edges[id_])
-            c = min(255, int(power * 0.3))
-            color = (c*(55/255), c*(55/255), c, 255)
-            self._cells[v] = (id_, color)
-
     @override
-    def collect(self) -> frozenset[Vec2Like]:
-        return frozenset(self._cells.keys())
-
-    @override
-    def get_color(self, cell: Vec2Like) -> tuple[int, int, int, int] | None:
-        _, color = self._cells.get(cell, (None, None))
-        return color
+    def get_state(self) -> CellSimState:
+        return [(k, c) for k, (_, c) in self._cells.items()]
 
     @override
     def get_digest(self) -> SimulationDigest:
@@ -285,8 +269,3 @@ class CrowdMeshSimulation(LifeSimulation):
             preset=preset_name,
             alive=0,  # TODO: number of active/lit bands
         )
-
-    @override
-    def set_debug(self, dbg: bool) -> None:
-        # TODO: debug view could draw the edges / highlight bridges + islands.
-        ...

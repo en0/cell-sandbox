@@ -1,28 +1,17 @@
 from typing import final, override
 
-from pygae.math import Vec2, Vec2Like
+from pygae.math import Vec2
 
-from cell_sandbox.renderers.cell_renderer import CellRenderer
+from cell_sandbox.renderers import FancyRenderer
 
-from ..core import LifeSimulation, SimulationDigest
+from ..core import CellSimState, LifeSimulation, SimulationDigest
 from ..helpers import ascii2tuple, random_field
 from ..registry import simulation
 
 _STATE_READY = 0
 _STATE_FIRE = 1
 _STATE_REFRACTORY = 2
-
-_STATE_TO_COLOR = {
-    _STATE_READY: None,
-    _STATE_FIRE: (0, 0, 170, 255),
-    _STATE_REFRACTORY: (0, 0, 170, 255),
-}
-
-_STATE_TO_COLOR_DEBUG = {
-    _STATE_READY: (30, 20, 20, 255),
-    _STATE_FIRE: (0, 50, 170, 255),
-    _STATE_REFRACTORY: (0, 0, 170, 255),
-}
+_CELL_COLOR = (0, 0, 170, 255)
 
 
 _NEIGHBORS = ascii2tuple("""
@@ -64,8 +53,8 @@ _PRESETS = [
 
 
 @final
-@simulation(CellRenderer)
-class BriansBrainSimulation(LifeSimulation):
+@simulation(FancyRenderer)
+class BriansBrainSimulation(LifeSimulation[CellSimState]):
 
     WIDTH = 50
     HEIGHT = 50
@@ -73,9 +62,8 @@ class BriansBrainSimulation(LifeSimulation):
     def __init__(self):
         self._index = 0
         self._generation = 0
-        self._cells: dict[Vec2Like, int] = dict()
-        self._prev: frozenset[Vec2Like] = set()
-        self._palet = _STATE_TO_COLOR
+        self._cells: dict[Vec2, int] = dict()
+        self._prev: frozenset[Vec2] = set()
         self._died: int = 0
         self._born: int = 0
 
@@ -131,8 +119,8 @@ class BriansBrainSimulation(LifeSimulation):
         return self._generation
 
     @override
-    def collect(self) -> frozenset[Vec2Like]:
-        return frozenset(self._cells.keys())
+    def get_state(self) -> CellSimState:
+        return [(k, _CELL_COLOR) for k, v in self._cells.items()]
 
     @override
     def get_digest(self) -> SimulationDigest:
@@ -144,12 +132,3 @@ class BriansBrainSimulation(LifeSimulation):
             born=self._born,
             died=self._died,
         )
-
-    @override
-    def get_color(self, cell: Vec2Like) -> tuple[int, int, int, int] | None:
-        v = self._cells.get(cell, _STATE_READY)
-        return self._palet.get(v)
-
-    @override
-    def set_debug(self, dbg: bool) -> None:
-        self._palet = _STATE_TO_COLOR_DEBUG if dbg else _STATE_TO_COLOR
